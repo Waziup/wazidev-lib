@@ -6,8 +6,9 @@ This library allows to pilot the [WaziDev](http://www.waziup.io/documentation/wa
 Install
 -------
 This library is compatible with Arduino IDE > 1.8.10. Check your version!
+
 Download the [zip file](https://github.com/Waziup/wazidev-lib/archive/master.zip).
-In your Arduino IDE select `sketch/Include Library/Add .ZIP library` and select the zip file downloaded.
+In your Arduino IDE select `sketch / Include Library / Add .ZIP library` and select the zip file downloaded.
 You're done!
 
 Example
