@@ -8,19 +8,20 @@
 class WaziDev
 {
   public:
-    //setup WaziDev
+    //setup WaziDev with the node address
     WaziDev(int nodeAddr);
     
+    //setup WaziDev with all parameters
     WaziDev(int nodeAddr, int destAddr, int loraMode, int channel, int maxDBm);
 
-    //setup the WaziDev
+    //setup the WaziDev. Must be called before any LoRa operations.
     void setup();
    
     //read a sensor
     int getSensorValue(int pin);
 
-    //Send a LoRa message
-    void send(char sensor_id[], float val);
+    //Send a LoRa message. deviceId is optional.
+    void send(char sensorId[], float val, char deviceId[] = NULL);
 
     // Power down the WaziDev for "duration" seconds
     void powerDown(const int duration); 
@@ -29,6 +30,9 @@ class WaziDev
     void writeSerial(const char* format, ...);
 
   private:
+    //Send a raw payload
+    void WaziDev::send(char payload[]);
+    
     uint8_t  maxDBm = 14;
     uint32_t channel = CH_10_868;
     int nodeAddr = 8;

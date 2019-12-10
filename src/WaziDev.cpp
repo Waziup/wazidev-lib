@@ -74,27 +74,30 @@ void WaziDev::setup()
 
 }
 
-
-void WaziDev::send(char sensor_id[], float val)
+void WaziDev::send(char sensorId[], float val, char deviceId[])
 {
-  writeSerial("Sending sensor %s with value %d\n", sensor_id, val);
-      
-  uint8_t message[50];
-  uint8_t r_size = sprintf(message,"\\!%s/%s", sensor_id, String(val).c_str());
+  
+  char devPayload[50];
+  sprintf(devPayload,"UID/%s", deviceId);
+  char senPayload[50];
+  sprintf(senPayload,"%s/%s", sensorId, String(val).c_str());
+
+  uint8_t message[103];
+  uint8_t r_size = sprintf(message,"\\!%s/%s", devPayload, senPayload);
 
   writeSerial("Sending %s\n", message);
   writeSerial("Real payload size is %d\n", r_size);
       
   sx1272.CarrierSense();
-  
-  long startSend=millis();
-
+ 
   // just a simple data packet
   sx1272.setPacketType(PKT_TYPE_DATA);
- 
+  
+  long startSend = millis();
+
   int sendRes = sx1272.sendPacketTimeout(destAddr, message, r_size);
 
-  long endSend=millis();
+  long endSend = millis();
     
   // save packet number for next packet in case of reboot
   config.seq=sx1272._packetNumber;     
