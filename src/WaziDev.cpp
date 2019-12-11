@@ -76,7 +76,7 @@ void WaziDev::setup()
 
 }
 
-void WaziDev::sendSensorValue(char sensorId[], float val)
+void WaziDev::sendSensorValue(char sensorId[], char *val)
 {
 
   //Preparing payload
@@ -125,13 +125,6 @@ void WaziDev::sendSensorValue(char sensorId[], float val)
     
   Serial.flush();
              
-}
-
-void WaziDev::putActuatorValue(int pin, char *val) {
-
-  writeSerial("Writing on pin %d with value %s\n", pin, val);
-  analogWrite(pin, val);
-
 }
 
 char* WaziDev::receiveActuatorValue(char *actuatorId) {
@@ -206,9 +199,16 @@ int WaziDev::getSensorValue(int pin) {
   //read the raw sensor value
   int value = analogRead(pin);
 
-  writeSerial("Reading %s", value);
+  writeSerial("Reading %s\n", value);
 
   return value;
+}
+
+void WaziDev::putActuatorValue(int pin, int val) {
+
+  writeSerial("Writing on pin %d with value %d\n", pin, val);
+  digitalWrite(pin, val);
+
 }
 
 // Power down the WaziDev for "duration" seconds

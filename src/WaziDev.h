@@ -7,6 +7,7 @@
 
 class WaziDev
 {
+
   public:
 
    // * Contructors & setup
@@ -20,36 +21,40 @@ class WaziDev
     //setup the WaziDev. Must be called before any LoRa operations.
     void setup();
 
+
     // * Sensors and actuators interactions
 
     //read a sensor
     int getSensorValue(int pin);
 
     //write an actuator
-    void putActuatorValue(int pin, char* val);
+    void putActuatorValue(int pin, int val);
+
 
     // * LoRa network
 
     //Send a LoRa message. deviceId is optional.
-    void sendSensorValue(char sensorId[], float val);
+    void sendSensorValue(char *sensorId, char *val);
 
     char* receiveActuatorValue(char *actuatorId);
+
+    //Send a raw payload
+    void send(char *payload);
+   
+    //Receive a raw payload
+    char* receive();
+
 
     // * Power management
 
     // Power down the WaziDev for "duration" seconds
     void powerDown(const int duration); 
 
+
     // * Serial port interactions
 
     // Write a message to the serial monitor
     void writeSerial(const char* format, ...);
-
-    //Send a raw payload
-    void send(char payload[]);
-   
-    //Receive a raw payload
-    char* receive();
 
 
   private:
