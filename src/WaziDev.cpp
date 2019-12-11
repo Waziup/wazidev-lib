@@ -4,13 +4,15 @@
 #include <LowPower.h>
 
 //setup WaziDev
-WaziDev::WaziDev(int nodeAddr) {
+WaziDev::WaziDev(char *deviceId, int nodeAddr) {
 
+  this->deviceId = deviceId;
   this->nodeAddr = nodeAddr;
 }
     
-WaziDev::WaziDev(int nodeAddr, int destAddr, int loraMode, int channel, int maxDBm) {
+WaziDev::WaziDev(char *deviceId, int nodeAddr, int destAddr, int loraMode, int channel, int maxDBm) {
 
+  this->deviceId = deviceId;
   this->nodeAddr = nodeAddr;
   this->destAddr = destAddr;
   this->loraMode = loraMode;
@@ -74,16 +76,19 @@ void WaziDev::setup()
 
 }
 
-void WaziDev::send(char sensorId[], float val, char deviceId[])
+void WaziDev::sendSensorValue(char sensorId[], float val)
 {
-  
-  char devPayload[50];
-  sprintf(devPayload,"UID/%s", deviceId);
+
+  //Preparing payload
+  char devPayload[50] = "";
+  if(deviceId != NULL) {
+    sprintf(devPayload,"UID/%s/", deviceId);
+  }
   char senPayload[50];
   sprintf(senPayload,"%s/%s", sensorId, String(val).c_str());
 
   uint8_t message[103];
-  uint8_t r_size = sprintf(message,"\\!%s/%s", devPayload, senPayload);
+  uint8_t r_size = sprintf(message,"\\!%s%s", devPayload, senPayload);
 
   writeSerial("Sending %s\n", message);
   writeSerial("Real payload size is %d\n", r_size);
@@ -103,23 +108,97 @@ void WaziDev::send(char sensorId[], float val, char deviceId[])
   config.seq=sx1272._packetNumber;     
   EEPROM.put(0, config);
 
-  writeSerial("LoRa pkt size %d\n", r_size);
-  writeSerial("LoRa pkt seq %d\n", sx1272.packet_sent.packnum);
-  writeSerial("LoRa Sent in %ld\n", endSend-startSend);
-  writeSerial("LoRa Sent w/CAD in %ld\n", endSend-sx1272._startDoCad);
-  writeSerial("Packet sent, state %d\n", sendRes);
-  writeSerial("Remaining ToA is %d\n", sx1272.getRemainingToA());
+  writeSerial("LoRa pkt size %d\nLoRa pkt seq %d\nLoRa Sent in %ld\nLoRa Sent w/CAD in %ld\nPacket sent, state %d\nRemaining ToA is %d\n",
+              r_size,
+              sx1272.packet_sent.packnum,
+              endSend-startSend,
+              endSend-sx1272._startDoCad,
+              sendRes, sx1272.getRemainingToA());
+
   writeSerial("Switch to power saving mode\n");
+  int resSleep = sx1272.setSleepMode();
 
-  int e = sx1272.setSleepMode();
-
-  if (!e)
+  if (!resSleep)
     writeSerial("Successfully switch LoRa module in sleep mode\n");
   else  
     writeSerial("Could not switch LoRa module in sleep mode\n");
     
   Serial.flush();
              
+}
+
+void WaziDev::putActuatorValue(int pin, char *val) {
+
+  writeSerial("Writing on pin %d with value %s\n", pin, val);
+  analogWrite(pin, val);
+
+}
+
+char* WaziDev::receiveActuatorValue(char *actuatorId) {
+
+  char uidVal[30]="";
+  char actId[20]="";
+  static char actVal[30]="";
+  
+  char *res = WaziDev::receive();
+   
+  sscanf(res, "\\!UID/%[^/]/%[^/]/%[^/]", uidVal, actId, actVal);
+  
+  writeSerial("\nReceived: uid = %s, actuator Id = %s, value = %s\n", uidVal, actId, actVal);
+  
+  if(strcmp(uidVal, deviceId) == 0 &&
+     strcmp(actId, actuatorId) == 0) {
+    
+    //Return the actuator value.
+    return actVal;
+
+  } else {
+    //No actuator value found in that payload.
+    return NULL;
+  }
+  
+}
+
+char* WaziDev::receive() {
+
+  int resRec = sx1272.receiveAll(MAX_TIMEOUT);
+
+  if (resRec != 0 && resRec != 3) {
+     writeSerial("Receive error %d\n", resRec);
+
+     if (resRec == 2) {
+         // Power OFF the module
+         sx1272.OFF();
+         writeSerial("Resetting radio module\n");
+         int resON = sx1272.ON();
+         writeSerial("Setting power ON: state %d\n", resON);
+     }
+     Serial.flush();         
+  }
+      
+  sx1272.getSNR();
+  sx1272.getRSSIpacket();
+
+  writeSerial("Received from LoRa:\n  data = %s\n", sx1272.packet_received.data);
+  writeSerial("  dst = %d, type = 0x%02X, src = %d, seq = %d\n",
+              sx1272.packet_received.dst,
+              sx1272.packet_received.type,
+              sx1272.packet_received.src,
+              sx1272.packet_received.packnum);
+  writeSerial("  len = %d, SNR = %d, RSSIpkt = %d, BW = %d, CR = 4/%d, SF = %d\n",
+              sx1272._payloadlength,
+              sx1272._SNR,
+              sx1272._RSSIpacket,
+              (sx1272._bandwidth==BW_125) ? 125 : ((sx1272._bandwidth==BW_250) ? 250 : 500),
+              sx1272._codingRate+4,
+              sx1272._spreadingFactor);
+
+  Serial.flush();
+
+  char* res = malloc(sx1272._payloadlength * sizeof(char));;
+  strcpy(res, sx1272.packet_received.data);
+  return res;
+
 }
 
 int WaziDev::getSensorValue(int pin) {
@@ -153,7 +232,7 @@ void WaziDev::writeSerial(const char* format, ...)
     va_list    args;
 
     va_start(args, format);
-    vsnprintf(msg, sizeof(msg), format, args); // do check return value
+    vsnprintf(msg, sizeof(msg), format, args);
     va_end(args);
 
     Serial.print(msg);
