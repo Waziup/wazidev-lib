@@ -171,8 +171,10 @@ char* WaziDev::receive() {
       
   sx1272.getSNR();
   sx1272.getRSSIpacket();
+  char* data = malloc(sx1272._payloadlength * sizeof(char));;
+  memcpy(data, sx1272.packet_received.data, sx1272._payloadlength);
 
-  writeSerial("Received from LoRa:\n  data = %s\n", sx1272.packet_received.data);
+  writeSerial("Received from LoRa:\n  data = %s\n", data);
   writeSerial("  dst = %d, type = 0x%02X, src = %d, seq = %d\n",
               sx1272.packet_received.dst,
               sx1272.packet_received.type,
@@ -188,9 +190,7 @@ char* WaziDev::receive() {
 
   Serial.flush();
 
-  char* res = malloc(sx1272._payloadlength * sizeof(char));;
-  strcpy(res, sx1272.packet_received.data);
-  return res;
+  return data;
 
 }
 
