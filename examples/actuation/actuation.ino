@@ -12,19 +12,17 @@ void loop(void)
 {
 
   //Send some data on sensor TC1
-  char *val = wazidev->getSensorValue(A0);
-  wazidev->sendSensorValue("TC1", val);
+  float senVal = wazidev->getSensorValue(A0);
+  wazidev->sendSensorValue("TC1", senVal);
   delay(1000);
 
 
   //Receive actuation
-  char* res = wazidev->receiveActuatorValue("TC1");
+  float actVal = wazidev->receiveActuatorValue("TC1");
 
-  if(res != NULL) {
-    wazidev->writeSerial("Actuator value: %s\n", res);
-    int val; 
-    sscanf(res, "%d", &val);
-    wazidev->putActuatorValue(LED_BUILTIN, val);
+  if(actVal != NULL) {
+    wazidev->writeSerial("Actuator value: %f\n", actVal);
+    wazidev->putActuatorValue(LED_BUILTIN, actVal);
   }
 
   Serial.flush();         

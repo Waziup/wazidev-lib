@@ -76,7 +76,7 @@ void WaziDev::setup()
 
 }
 
-void WaziDev::sendSensorValue(char sensorId[], char *val)
+void WaziDev::sendSensorValue(char sensorId[], float val)
 {
 
   //Preparing payload
@@ -127,17 +127,17 @@ void WaziDev::sendSensorValue(char sensorId[], char *val)
              
 }
 
-char* WaziDev::receiveActuatorValue(char *actuatorId) {
+float WaziDev::receiveActuatorValue(char *actuatorId) {
 
   char uidVal[30]="";
   char actId[20]="";
-  static char actVal[30]="";
+  static float actVal;
   
   char *res = WaziDev::receive();
    
-  sscanf(res, "\\!UID/%[^/]/%[^/]/%[^/]", uidVal, actId, actVal);
+  sscanf(res, "\\!UID/%[^/]/%[^/]/%f", uidVal, actId, actVal);
   
-  writeSerial("\nReceived: uid = %s, actuator Id = %s, value = %s\n", uidVal, actId, actVal);
+  writeSerial("\nReceived: uid = %s, actuator Id = %s, value = %f\n", uidVal, actId, actVal);
   
   if(strcmp(uidVal, deviceId) == 0 &&
      strcmp(actId, actuatorId) == 0) {
@@ -194,20 +194,20 @@ char* WaziDev::receive() {
 
 }
 
-int WaziDev::getSensorValue(int pin) {
+float WaziDev::getSensorValue(int pin) {
 
   //read the raw sensor value
-  int value = analogRead(pin);
+  float value = analogRead(pin);
 
-  writeSerial("Reading %s\n", value);
+  writeSerial("Reading %f\n", value);
 
   return value;
 }
 
-void WaziDev::putActuatorValue(int pin, int val) {
+void WaziDev::putActuatorValue(int pin, float val) {
 
   writeSerial("Writing on pin %d with value %d\n", pin, val);
-  digitalWrite(pin, val);
+  analogWrite(pin, val);
 
 }
 

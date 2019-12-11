@@ -25,18 +25,18 @@ class WaziDev
     // * Sensors and actuators interactions
 
     //read a sensor
-    int getSensorValue(int pin);
+    float getSensorValue(int pin);
 
     //write an actuator
-    void putActuatorValue(int pin, int val);
+    void putActuatorValue(int pin, float val);
 
 
     // * LoRa network
 
     //Send a LoRa message. deviceId is optional.
-    void sendSensorValue(char *sensorId, char *val);
+    void sendSensorValue(char *sensorId, float val);
 
-    char* receiveActuatorValue(char *actuatorId);
+    float receiveActuatorValue(char *actuatorId);
 
     //Send a raw payload
     void send(char *payload);
