@@ -10,3 +10,7 @@ ARDUINO_LIBS     = SPI SX1272 LowPower EEPROM WaziDev
 MONITOR_BAUDRATE = 38400 
 
 include /usr/share/arduino/Arduino.mk
+
+monitor:
+	stty -F /dev/ttyUSB0 raw 38400
+	cat /dev/ttyUSB0
