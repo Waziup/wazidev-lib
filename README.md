@@ -27,14 +27,17 @@ sudo make upload
 
 You can monitor the Serial port of your WaziDev this way:
 ```
-sudo stty -F /dev/ttyUSB0 raw 38400
-sudo cat /dev/ttyUSB0
+sudo make monitor
 ```
 
 
 It is also possible to recompile automatically each time you change a file with `entr`:
 ```
 ls | entr make
+```
+or:
+```
+ls | entr -s 'sudo make upload && sudo make monitor'
 ```
 
 
