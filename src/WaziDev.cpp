@@ -4,13 +4,13 @@
 #include <LowPower.h>
 
 //setup WaziDev
-WaziDev::WaziDev(char *deviceId, int nodeAddr) {
+WaziDev::WaziDev(String deviceId, int nodeAddr) {
 
   this->deviceId = deviceId;
   this->nodeAddr = nodeAddr;
 }
     
-WaziDev::WaziDev(char *deviceId, int nodeAddr, int destAddr, int loraMode, int channel, int maxDBm) {
+WaziDev::WaziDev(String deviceId, int nodeAddr, int destAddr, int loraMode, int channel, int maxDBm) {
 
   this->deviceId = deviceId;
   this->nodeAddr = nodeAddr;
@@ -73,24 +73,21 @@ void WaziDev::setup()
   
   // Print a success message
   writeSerial("WaziDev successfully configured\n");
+  Serial.flush();
 
 }
 
-void WaziDev::sendSensorValue(char sensorId[], float val)
+void WaziDev::sendSensorValue(String sensorId, float val)
 {
 
-  //Preparing payload
-  char devPayload[50] = "";
+  String message = "\\!";
   if(deviceId != NULL) {
-    sprintf(devPayload,"UID/%s/", deviceId);
+    message += "UID/" + deviceId + "/";
   }
-  char senPayload[50];
-  sprintf(senPayload,"%s/%s", sensorId, String(val).c_str());
-
-  uint8_t message[103];
-  uint8_t r_size = sprintf(message,"\\!%s%s", devPayload, senPayload);
-
-  writeSerial("Sending %s\n", message);
+  message += sensorId + "/" + String(val); 
+  int r_size = message.length() + 1;
+ 
+  writeSerial("Sending " + message + "\n");
   writeSerial("Real payload size is %d\n", r_size);
       
   sx1272.CarrierSense();
@@ -100,7 +97,7 @@ void WaziDev::sendSensorValue(char sensorId[], float val)
   
   long startSend = millis();
 
-  int sendRes = sx1272.sendPacketTimeout(destAddr, message, r_size);
+  int sendRes = sx1272.sendPacketTimeout(destAddr, message.c_str());
 
   long endSend = millis();
     
@@ -127,34 +124,38 @@ void WaziDev::sendSensorValue(char sensorId[], float val)
              
 }
 
-float WaziDev::receiveActuatorValue(char *actuatorId) {
+int WaziDev::receiveActuatorValue(String actuatorId, int wait, String &act) {
 
-  char uidVal[30]="";
-  char actId[20]="";
-  static float actVal;
+  char uidVal[55] = "";
+  char actId[55] = "";
+  char actVal[55] = "";
+ 
+  //Get the data from LoRa
+  String res;
+  this->receive(res, wait);
+
+  //Parse the data
+  sscanf(res.c_str(), "\\!UID/%[^/]/%[^/]/%s", uidVal, actId, actVal);
+  writeSerial("\nReceived: uid = %s, actuator Id = %s, value = %s\n", uidVal, actId, actVal);
+  Serial.flush();
   
-  char *res = WaziDev::receive();
-   
-  sscanf(res, "\\!UID/%[^/]/%[^/]/%f", uidVal, actId, actVal);
-  
-  writeSerial("\nReceived: uid = %s, actuator Id = %s, value = %f\n", uidVal, actId, actVal);
-  
-  if(strcmp(uidVal, deviceId) == 0 &&
-     strcmp(actId, actuatorId) == 0) {
+  if(String(uidVal).compareTo(deviceId) == 0 &&
+     String(actId).compareTo(actuatorId) == 0) {
     
     //Return the actuator value.
-    return actVal;
+    act = String(actVal);
+    return 0;
 
   } else {
-    //No actuator value found in that payload.
-    return NULL;
+
+    return -1;
   }
-  
 }
 
-char* WaziDev::receive() {
+int WaziDev::receive(String &out, int wait) {
 
-  int resRec = sx1272.receiveAll(MAX_TIMEOUT);
+  writeSerial("Listening LoRa...\n");
+  int resRec = sx1272.receiveAll(wait);
 
   if (resRec != 0 && resRec != 3) {
      writeSerial("Receive error %d\n", resRec);
@@ -166,32 +167,38 @@ char* WaziDev::receive() {
          int resON = sx1272.ON();
          writeSerial("Setting power ON: state %d\n", resON);
      }
-     Serial.flush();         
-  }
+     Serial.flush();
+     return -1;
+
+  } else {
       
-  sx1272.getSNR();
-  sx1272.getRSSIpacket();
-  char* data = malloc(sx1272._payloadlength * sizeof(char));;
-  memcpy(data, sx1272.packet_received.data, sx1272._payloadlength);
+    sx1272.getSNR();
+    sx1272.getRSSIpacket();
+    char* data = (char*)malloc(sx1272._payloadlength * sizeof(char) + 1);  //TODO is it correct to malloc each time? Who will free?
+    memcpy(data, sx1272.packet_received.data, sx1272._payloadlength);
+    data[sx1272._payloadlength] = '\0';
 
-  writeSerial("Received from LoRa:\n  data = %s\n", data);
-  writeSerial("  dst = %d, type = 0x%02X, src = %d, seq = %d\n",
-              sx1272.packet_received.dst,
-              sx1272.packet_received.type,
-              sx1272.packet_received.src,
-              sx1272.packet_received.packnum);
-  writeSerial("  len = %d, SNR = %d, RSSIpkt = %d, BW = %d, CR = 4/%d, SF = %d\n",
-              sx1272._payloadlength,
-              sx1272._SNR,
-              sx1272._RSSIpacket,
-              (sx1272._bandwidth==BW_125) ? 125 : ((sx1272._bandwidth==BW_250) ? 250 : 500),
-              sx1272._codingRate+4,
-              sx1272._spreadingFactor);
+    writeSerial("Received from LoRa:\n  data = %s\n", data);
+    writeSerial("  dst = %d, type = 0x%02X, src = %d, seq = %d\n",
+                sx1272.packet_received.dst,
+                sx1272.packet_received.type,
+                sx1272.packet_received.src,
+                sx1272.packet_received.packnum);
+    writeSerial("  len = %d, SNR = %d, RSSIpkt = %d, BW = %d, CR = 4/%d, SF = %d\n",
+                sx1272._payloadlength,
+                sx1272._SNR,
+                sx1272._RSSIpacket,
+                (sx1272._bandwidth==BW_125) ? 125 : ((sx1272._bandwidth==BW_250) ? 250 : 500),
+                sx1272._codingRate+4,
+                sx1272._spreadingFactor);
 
-  Serial.flush();
+    Serial.flush();
 
-  return data;
 
+    out = String(data);
+    free(data);
+    return 0;
+  }
 }
 
 float WaziDev::getSensorValue(int pin) {
@@ -215,9 +222,7 @@ void WaziDev::putActuatorValue(int pin, float val) {
 void WaziDev::powerDown(const int duration) {
 
   for (uint8_t i=0; i<duration; i++) {  
-      // ATmega2560, ATmega328P, ATmega168, ATmega32U4
       LowPower.powerDown(SLEEP_1S, ADC_OFF, BOD_OFF);
-                              
       writeSerial(".");
       delay(1);                        
   }    
@@ -226,7 +231,12 @@ void WaziDev::powerDown(const int duration) {
 
 }
 
-void WaziDev::writeSerial(const char* format, ...)
+void WaziDev::writeSerial(String message)
+{
+  writeSerial(message.c_str());
+}
+
+void WaziDev::writeSerial(const char *format, ...)
 {
     char       msg[100];
     va_list    args;

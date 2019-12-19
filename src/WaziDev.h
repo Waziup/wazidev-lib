@@ -13,10 +13,10 @@ class WaziDev
    // * Contructors & setup
 
    //setup WaziDev with the node address
-    WaziDev(char *deviceId, int nodeAddr);
+    WaziDev(String deviceId, int nodeAddr);
     
     //setup WaziDev with all parameters
-    WaziDev(char *deviceId, int nodeAddr, int destAddr, int loraMode, int channel, int maxDBm);
+    WaziDev(String deviceId, int nodeAddr, int destAddr, int loraMode, int channel, int maxDBm);
 
     //setup the WaziDev. Must be called before any LoRa operations.
     void setup();
@@ -34,15 +34,15 @@ class WaziDev
     // * LoRa network
 
     //Send a LoRa message. deviceId is optional.
-    void sendSensorValue(char *sensorId, float val);
+    void sendSensorValue(String sensorId, float val);
 
-    float receiveActuatorValue(char *actuatorId);
+    int receiveActuatorValue(String actuatorId, int wait, String &res);
 
     //Send a raw payload
-    void send(char *payload);
+    void send(String payload);
    
     //Receive a raw payload
-    char* receive();
+    int receive(String &data, int wait);
 
 
     // * Power management
@@ -54,12 +54,15 @@ class WaziDev
     // * Serial port interactions
 
     // Write a message to the serial monitor
-    void writeSerial(const char* format, ...);
+    void writeSerial(const char *format, ...);
+
+    // Write a message to the serial monitor
+    void writeSerial(String format);
 
 
   private:
 
-    char* deviceId = NULL;
+    String  deviceId;
     uint8_t  maxDBm = 14;
     uint32_t channel = CH_10_868;
     int nodeAddr = 8;
