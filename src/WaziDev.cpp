@@ -233,18 +233,17 @@ void WaziDev::powerDown(const int duration) {
 
 void WaziDev::writeSerial(String message)
 {
-  writeSerial(message.c_str());
+   writeSerial(message.c_str());
 }
 
 void WaziDev::writeSerial(const char *format, ...)
 {
-    char       msg[100];
-    va_list    args;
+   char       msg[100];
+   va_list    args;
 
-    va_start(args, format);
-    vsnprintf(msg, sizeof(msg), format, args);
-    va_end(args);
+   va_start(args, format);
+   vsnprintf(msg, sizeof(msg), format, args);
+   va_end(args);
 
-    Serial.print(msg);
+   Serial.print(msg);
 }
-

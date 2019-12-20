@@ -11,12 +11,6 @@ void setup()
 void loop(void)
 {
 
-  //Send some data on sensor TC1
-  //float senVal = wazidev->getSensorValue(A0);
-  //wazidev->sendSensorValue("TC1", senVal);
-  //delay(1000);
-
-
   //Receive actuation
   String act;
   int res = wazidev.receiveActuatorValue(String("TC1"), 10000, act);

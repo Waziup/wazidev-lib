@@ -53,7 +53,8 @@ class WaziDev
 
     // * Serial port interactions
 
-    // Write a message to the serial monitor
+    // Write a message to the serial monitor using printf format.
+    // Note: due to arduino limitations, floats (%f) won't work.
     void writeSerial(const char *format, ...);
 
     // Write a message to the serial monitor
