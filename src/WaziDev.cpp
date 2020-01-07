@@ -79,12 +79,28 @@ void WaziDev::setup()
 
 void WaziDev::sendSensorValue(String sensorId, float val)
 {
+  SensorVal fields[1] = {{sensorId, val}};
+  sendSensorValues(fields, 1);
+}
 
+String WaziDev::getPayload(const SensorVal vals[], int nbValues) {
   String message = "\\!";
   if(deviceId != NULL) {
     message += "UID/" + deviceId + "/";
   }
-  message += sensorId + "/" + String(val); 
+  for(int i = 0; i<nbValues; i++) {
+    message += vals[i].sensorId + "/" + String(vals[i].value);
+    if(i != nbValues -1) {
+      message += "/";
+    }
+  }
+  
+  return message;
+}
+
+void WaziDev::sendSensorValues(const SensorVal vals[], int nb_values) {
+
+  String message = getPayload(vals, nb_values);
   int r_size = message.length() + 1;
  
   writeSerial("Sending " + message + "\n");
@@ -121,7 +137,7 @@ void WaziDev::sendSensorValue(String sensorId, float val)
     writeSerial("Could not switch LoRa module in sleep mode\n");
     
   Serial.flush();
-             
+
 }
 
 int WaziDev::receiveActuatorValue(String actuatorId, int wait, String &act) {

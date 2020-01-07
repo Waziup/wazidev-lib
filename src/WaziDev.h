@@ -33,8 +33,15 @@ class WaziDev
 
     // * LoRa network
 
-    //Send a LoRa message. deviceId is optional.
+    //Send a sensor value on LoRa.
     void sendSensorValue(String sensorId, float val);
+
+    //Send several sensor values on LoRa.
+    struct SensorVal{
+      String sensorId;
+      float value;
+    };
+    void sendSensorValues(const SensorVal vals[], int nb_values);
 
     int receiveActuatorValue(String actuatorId, int wait, String &res);
 
@@ -71,7 +78,6 @@ class WaziDev
     int loraMode = 1;
     
     struct Config {
-    
       uint8_t flag1;
       uint8_t flag2;
       uint8_t seq;
@@ -80,6 +86,7 @@ class WaziDev
 
     Config config;
     
+    String getPayload(const SensorVal vals[], int nbValues);
 
 };
 
