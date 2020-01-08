@@ -101,10 +101,17 @@ String WaziDev::getPayload(const SensorVal vals[], int nbValues) {
 void WaziDev::sendSensorValues(const SensorVal vals[], int nb_values) {
 
   String message = getPayload(vals, nb_values);
-  int r_size = message.length() + 1;
  
+  int r_size = message.length() + 1;
   writeSerial("Sending " + message + "\n");
   writeSerial("Real payload size is %d\n", r_size);
+
+  send(message);
+}
+
+int WaziDev::send(String message) {
+
+  int r_size = message.length() + 1;
       
   sx1272.CarrierSense();
  
@@ -113,7 +120,7 @@ void WaziDev::sendSensorValues(const SensorVal vals[], int nb_values) {
   
   long startSend = millis();
 
-  int sendRes = sx1272.sendPacketTimeout(destAddr, message.c_str());
+  int sendRes = sx1272.sendPacketTimeoutACK(destAddr, message.c_str());
 
   long endSend = millis();
     
@@ -137,6 +144,8 @@ void WaziDev::sendSensorValues(const SensorVal vals[], int nb_values) {
     writeSerial("Could not switch LoRa module in sleep mode\n");
     
   Serial.flush();
+
+  return sendRes;
 
 }
 
@@ -216,6 +225,7 @@ int WaziDev::receive(String &out, int wait) {
     return 0;
   }
 }
+
 
 float WaziDev::getSensorValue(int pin) {
 

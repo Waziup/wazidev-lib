@@ -10,12 +10,24 @@ class WaziDev
 
   public:
 
-   // * Contructors & setup
+    //Structure for sensor values
+    struct SensorVal{
+      String sensorId;
+      float value;
+    };
 
-   //setup WaziDev with the node address
+    // * Contructors & setup
+
+    //setup WaziDev with the node address
     WaziDev(String deviceId, int nodeAddr);
     
-    //setup WaziDev with all parameters
+    //setup WaziDev with all parameters:
+    // deviceId: Your device ID as it should appear in WaziCloud
+    // nodeAddr: the LoRa node address. It should be different for each WaziDev under the same gateway.
+    // destAddr: should be 1 for the WaziGate
+    // loraMode: should be 1 for the WaziGate
+    // channel: the channel used for LoRa in your country.
+    // maxDBm: the maxDBm under your regulation.
     WaziDev(String deviceId, int nodeAddr, int destAddr, int loraMode, int channel, int maxDBm);
 
     //setup the WaziDev. Must be called before any LoRa operations.
@@ -37,20 +49,16 @@ class WaziDev
     void sendSensorValue(String sensorId, float val);
 
     //Send several sensor values on LoRa.
-    struct SensorVal{
-      String sensorId;
-      float value;
-    };
     void sendSensorValues(const SensorVal vals[], int nb_values);
 
     int receiveActuatorValue(String actuatorId, int wait, String &res);
 
     //Send a raw payload
-    void send(String payload);
+    //return '0' on success, '1' otherwise
+    int send(String payload);
    
     //Receive a raw payload
     int receive(String &data, int wait);
-
 
     // * Power management
 
@@ -62,6 +70,7 @@ class WaziDev
 
     // Write a message to the serial monitor using printf format.
     // Note: due to arduino limitations, floats (%f) won't work.
+    // buffer is limited to 100 characters.
     void writeSerial(const char *format, ...);
 
     // Write a message to the serial monitor
