@@ -16,7 +16,7 @@
  *  along with the program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *****************************************************************************/
-￼
+
 #include "local_lorawan.h"
 #include "Utils.h"
 
