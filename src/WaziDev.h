@@ -93,4 +93,6 @@ public:
     int8_t loRaRSSI;
 };
 
+int printBase64(const void *buf, int len);
+
 #endif

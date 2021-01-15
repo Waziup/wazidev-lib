@@ -2,7 +2,9 @@
 // #include <SPI.h>
 #include <EEPROM.h>
 #include <LowPower.h>
+#include <Base64.h>
 #include "local_lorawan.h"
+
 
 WaziDev::WaziDev() {}
 
@@ -139,4 +141,15 @@ uint8_t WaziDev::receiveLoRaWAN(void *pl, uint8_t* offs, uint8_t* len, uint16_t 
         }
     }
     return e;
+}
+
+
+int printBase64(const void *buf, int len)
+{
+    int encLen = base64_enc_len(len);
+    char* h = (char*) malloc(encLen);
+    base64_encode(h, buf, len); 
+    Serial.print(h);
+    free(h);
+    return encLen;
 }
