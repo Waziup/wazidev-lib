@@ -10,7 +10,7 @@ unsigned char DevAddr[4] = {0x26, 0x01, 0x1D, 0x88};
 
 
 // A valid payload for the downlink for this sketch has been generated like this:
-// > xlpp -e '{"colour0":""ffaa00","switch1":true}'
+// > xlpp -e '{"colour0":"#ffaa00","switch1":true}'
 // < AIf/qgABjgE=
 // You can paste the base64 payload to Chirpstack.
 // On Windows, you might need to escape it like this:
