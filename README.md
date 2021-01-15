@@ -1,47 +1,59 @@
-WaziDev
-=======
+WaziDev Library
+===============
 
-This repository contains everything you need to use [WaziDev](http://www.waziup.io/documentation/wazidev/).
+This library allows to pilot the [WaziDev](http://www.waziup.io/documentation/wazidev/).
 
-It can be loaded as a sketchbook in Arduino IDE.
+Install
+-------
+This library is compatible with Arduino IDE > 1.8.10. Check your version!
+
+Download the [zip file](https://github.com/Waziup/wazidev-lib/archive/master.zip).
+In your Arduino IDE select `sketch / Include Library / Add .ZIP library` and select the zip file downloaded.
+You're done!
+
+Usage
+-----
 
 
-Arduino Sketches
-=======
+Development
+-----------
 
-➡️ Check out the [wazidev library examples](https://github.com/Waziup/wazidev-lib/tree/v2/examples) at the [waziup/wazidev-lib](https://github.com/Waziup/wazidev-lib) repository.
-
-
-Develop
-=======
-
-
-You can clone this repo with:
+You can use the Makefile included by installing Arduino Makefile: https://github.com/sudar/Arduino-Makefile/
+You can then use the traditional `make` commands:
 ```
-git clone git@github.com:Waziup/WaziDev.git
-```
-
-ATTENTION, this repo use a "subtree" for WaziDev library. The subtree is in libraries/WaziDev.
-You can get the last change to the library with:
-```
-git subtree pull --prefix libraries/WaziDev/ --squash wazidev-lib master
+make
+sudo make upload
 ```
 
-If you made changes to the WaziDev library, push them to the original repo of the library:
+You can monitor the Serial port of your WaziDev this way:
 ```
-git subtree push --prefix libraries/WaziDev/ --squash wazidev-lib master
+sudo make monitor
 ```
 
-# Enabling LMIC support on Wazidev v1.3
 
-If you use Wazidev v1.4 or above, there is a support automatically for LMIC lib. However, if you have Wazidev 1.3 you need to enable it via a small soldering as shown below:
+It is also possible to recompile automatically each time you change a file with `entr`:
+```
+ls | entr make
+```
+or:
+```
+ls | entr -s 'sudo make upload && sudo make monitor'
+```
 
-![Soldering Wazidev_1.3 to enable LMIC](/examples/LoRa/LoRaWAN_LPP_LMIC/enable_LMIC_on_Wazidev_v1.3.jpeg)
 
-- So as shown, you only need to Solder the **JR** pad which connects the *DIO0* of the Lora module to pin *D2* of the Atmega chip. 
-- Also, you need to pick a wire and solder one end on where it is shown on the Lora module (which is *DIO1*) and another end to the *D3* pin of the Atmega chip. 
-You can also use a jumper whire and plug one end to *D3* and solder the other end on *DIO1* as shown.
+Copyright
+---------
 
-# Hardware
+Copyright Waziup 2019.
 
-WaziDev is based on the design by [Fabien Ferrero](https://github.com/FabienFerrero/UCA_Board).
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
