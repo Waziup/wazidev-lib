@@ -1,23 +1,37 @@
 #include <WaziDev.h>
 #include <xlpp.h>
+#include <DHT.h>
+
+// RGB-LED analog PWM pins: red, gree, blue
+#define LED_RED_PIN 3
+#define LED_GREEN_PIN 5
+#define LED_BLUE_PIN 6
+
+// DHT analog pin
+#define DHT_PIN 2
+
+
 
 // LoRaWANKey is used as both NwkSKey (Network Session Key) and Appkey (AppKey) for secure LoRaWAN transmission.
 // Copy'n'paste the key to your Wazigate: 23158D3BBC31E6AF670D195B5AED5525
 unsigned char LoRaWANKey[16] = {0x23, 0x15, 0x8D, 0x3B, 0xBC, 0x31, 0xE6, 0xAF, 0x67, 0x0D, 0x19, 0x5B, 0x5A, 0xED, 0x55, 0x25};
-// Copy'n'paste the DevAddr (Device Address): 26011D88
-unsigned char DevAddr[4] = {0x26, 0x01, 0x1D, 0x88};
+// Copy'n'paste the DevAddr (Device Address): 26011D89
+unsigned char DevAddr[4] = {0x26, 0x01, 0x1D, 0x89};
 // You can change the Key and DevAddr as you want.
 
 
 // A valid payload for the downlink for this sketch has been generated like this:
-// > xlpp -e '{"colour0":"#ffaa00","switch1":true}'
-// < AIf/qgABjgE=
+// > xlpp -e '{"colour0":"#ffaa00"}'
+// < AIf/qgA=
 // You can paste the base64 payload to Chirpstack.
 // On Windows, you might need to escape it like this:
-// > xlpp -e "{"""colour0""":"""#ffaa00""","""switch1""":true}"
+// > xlpp -e "{"""colour0""":"""#ffaa00"""}"
 
 
 WaziDev wazidev;
+
+DHT dht(DHT_PIN, DHT11);
+
 
 void setup()
 {
@@ -29,13 +43,21 @@ XLPP xlpp(120);
 
 void loop(void)
 {
-  // 1
-  // Create xlpp payload.
-  xlpp.reset();
-  xlpp.addTemperature(1, 20.3); // °C
+  delay(2000);
+
+  // 1.
+  // Read sensor values.
+  float humidity = dht.readHumidity(); // %
+  float temperature = dht.readTemperature(); // °C
 
   // 2.
-  // Send paload with LoRaWAN.
+  // Create xlpp payload for uplink.
+  xlpp.reset();
+  xlpp.addRelativeHumidity(0, humidity);
+  xlpp.addTemperature(0, temperature);
+
+  // 2.
+  // Send paload uplink with LoRaWAN.
   serialPrintf("LoRaWAN send ... ");
   uint8_t e = wazidev.sendLoRaWAN(xlpp.buf, xlpp.len);
   if (e != 0)
@@ -47,7 +69,7 @@ void loop(void)
   serialPrintf("OK\n");
   
   // 3.
-  // Receive LoRaWAN message (waiting for 6 seconds only).
+  // Receive LoRaWAN downlink message (waiting for 6 seconds only).
   serialPrintf("LoRa receive ... ");
   uint8_t offs = 0;
   long startSend = millis();
@@ -77,7 +99,7 @@ void loop(void)
   serialPrintf("\n");
 
   // 4.
-  // Read xlpp message.
+  // Read xlpp downlink message.
   // You must use the following pattern to properly parse xlpp payload.
   int end = xlpp.len + xlpp.offset;
   while (xlpp.offset < end)
@@ -91,28 +113,13 @@ void loop(void)
 
     // ... then the value!
     switch (type) {
-      case LPP_DIGITAL_OUTPUT:
-      {
-        uint8_t v = xlpp.getDigitalInput();
-        serialPrintf("Digital Output: %hu (0x%02x)\n", v, v);
-        break;
-      }
-      case LPP_ANALOG_OUTPUT:
-      {
-        float f = xlpp.getAnalogOutput();
-        serialPrintf("Analog Output: %.2f\n", f);
-        break;
-      }
       case LPP_COLOUR:
       {
         Colour c = xlpp.getColour();
         serialPrintf("Colour: R %d, G %d, B %d (#%02X%02X%02X)\n", c.r, c.g, c.b, c.r, c.g, c.b);
-        break;
-      }
-      case LPP_SWITCH:
-      {
-        uint8_t v = xlpp.getSwitch();
-        serialPrintf("Switch: %s\n", v?"on":"off");
+        analogWrite(LED_RED_PIN, c.r);
+        analogWrite(LED_GREEN_PIN, c.g);
+        analogWrite(LED_BLUE_PIN, c.b);
         break;
       }
       default:
