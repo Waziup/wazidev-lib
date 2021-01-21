@@ -8,7 +8,7 @@ Libraries:
 - [XLPP Payload](https://github.com/Waziup/arduino-xlpp) (encryption and decryption)
 - [DHT sensor library](https://www.arduino.cc/reference/en/libraries/dht-sensor-library/)
 
-❗ Please install the DHT sensor library using the Arduino Library Manager ❗
+❗ Please install the DHT sensor library (by Adafruit) using the Arduino Library Manager ❗
 
 Sensors:
 
