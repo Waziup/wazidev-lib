@@ -11,35 +11,6 @@ Download the [zip file](https://github.com/Waziup/wazidev-lib/archive/master.zip
 In your Arduino IDE select `sketch / Include Library / Add .ZIP library` and select the zip file downloaded.
 You're done!
 
-Usage
------
-
-
-Development
------------
-
-You can use the Makefile included by installing Arduino Makefile: https://github.com/sudar/Arduino-Makefile/
-You can then use the traditional `make` commands:
-```
-make
-sudo make upload
-```
-
-You can monitor the Serial port of your WaziDev this way:
-```
-sudo make monitor
-```
-
-
-It is also possible to recompile automatically each time you change a file with `entr`:
-```
-ls | entr make
-```
-or:
-```
-ls | entr -s 'sudo make upload && sudo make monitor'
-```
-
 
 Copyright
 ---------
